@@ -66,12 +66,13 @@ us-stock-youtube/
 ## Workflow
 
 1. Download a video with yt-dlp, or use a local video.
-2. Retrieve captions; fall back to local faster-whisper transcription.
-3. Extract a screenshot every 15 seconds with FFmpeg.
-4. Have an agent review the transcript and screenshots using SKILL.md.
-5. Save the supported findings in the fixed `analysis.json` contract.
-6. Render a concise `summary.md` with short news, market, and stock sections.
-7. Rebuild `stock-tracker.md` across all analyzed videos.
+2. Group videos into stable `CHANNEL-NAME__CHANNEL-ID/YYYY-MM-DD_VIDEO-ID` run directories.
+3. Retrieve captions; fall back to local faster-whisper transcription.
+4. Extract a screenshot every 15 seconds with FFmpeg.
+5. Have an agent review the transcript and screenshots using SKILL.md.
+6. Save the supported findings in the fixed `analysis.json` contract.
+7. Render a concise `summary.md` with short news, market, and stock sections.
+8. Rebuild `stock-tracker.md` across all analyzed videos.
 
 ## Setup
 
@@ -120,7 +121,7 @@ uv lock --script scripts/update_stock_tracker.py
 After the Agent reviews one run and writes `analysis.json`, generate its fixed-format report:
 
 ```console
-uv run --script scripts/render_summary.py runs/<run-id>
+uv run --script scripts/render_summary.py runs/<channel-name>__<channel-id>/<run-id>
 ```
 
 Then rebuild the table covering every completed analysis:
@@ -134,16 +135,17 @@ The tracker is rebuilt rather than appended, so the same command can be run repe
 ## Generated output
 
 ```text
-runs/<timestamp>-<unique-id>/
-|-- manifest.json            # Successful preparation metadata
-|-- transcript.json          # Timestamped segments and transcript source
-|-- transcript.md            # Human-readable transcript
-|-- frames.json              # Screenshot paths and nominal timestamps
-|-- frames/
-|   |-- 000000.jpg
-|   `-- ...
-|-- analysis.json            # Structured findings written by the agent
-`-- summary.md               # Deterministically rendered report
+runs/<channel-name>__<channel-id>/
+`-- <YYYY-MM-DD>_<youtube-video-id>/
+    |-- manifest.json            # Successful preparation metadata
+    |-- transcript.json          # Timestamped segments and transcript source
+    |-- transcript.md            # Human-readable transcript
+    |-- frames.json              # Screenshot paths and nominal timestamps
+    |-- frames/
+    |   |-- 000000.jpg
+    |   `-- ...
+    |-- analysis.json            # Structured findings written by the agent
+    `-- summary.md               # Deterministically rendered report
 ```
 
 The workspace also contains one cumulative file:
@@ -153,6 +155,8 @@ stock-tracker.md              # One table covering stocks from every completed r
 ```
 
 Downloaded videos, captions, metadata, and extracted ASR audio are retained when applicable. Generated runs and virtual environments are excluded from Git.
+
+The channel display name keeps the directory readable, while `channel-id` and `video-id` provide stable identity and avoid collisions. Unsafe path characters are replaced for Windows, macOS, and Linux. Recursive video-ID lookup reuses the same run even if the channel later changes its display name. Local inputs use `runs/_local/local_<stem>_<path-hash>/`.
 
 ## Agent usage
 

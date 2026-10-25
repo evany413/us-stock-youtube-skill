@@ -19,7 +19,7 @@ uv run --script <skill-directory>/scripts/prepare.py "https://www.youtube.com/wa
 
 Screenshots default to 15-second intervals and 1280 pixels wide. Preserve the original timeline without trimming or removing advertisements. Read [workflow notes](references/workflow.md) for tool choices and additional examples. Do not automatically access browser cookies to resolve download failures.
 
-Each execution creates a unique run directory. A successful run contains `manifest.json`, `transcript.json`, `transcript.md`, `frames.json`, and `frames/*.jpg`. Failed runs retain intermediate files without a successful manifest.
+Each new YouTube video maps to one reusable `CHANNEL-NAME__CHANNEL-ID/YYYY-MM-DD_VIDEO-ID` run directory. yt-dlp provides the readable channel name plus stable channel and video IDs; unsafe path characters are replaced for Windows, macOS, and Linux. Repeating the same URL searches recursively by video ID, so channel renames and legacy flat run directories do not duplicate the video. Reuse completed downloads, audio, transcripts, and screenshots, and retry the URL rather than passing its downloaded `video.mkv` back as a local source. Local files use `_local/local_STEM_HASH`. A successful run contains `manifest.json`, `transcript.json`, `transcript.md`, `frames.json`, and `frames/*.jpg`; failed preparation keeps its intermediate files in the same directory for the next retry.
 
 ## Review and summarize
 

@@ -72,8 +72,8 @@ class ReportingTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as temporary_directory:
             root = Path(temporary_directory)
             runs = root / "runs"
-            older = runs / "older"
-            newer = runs / "newer"
+            older = runs / "Market Channel__UC123" / "older"
+            newer = runs / "Market Channel__UC123" / "newer"
             older.mkdir(parents=True)
             newer.mkdir(parents=True)
             (older / "analysis.json").write_text(

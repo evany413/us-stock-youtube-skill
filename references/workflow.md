@@ -28,6 +28,8 @@ uv run --script scripts/prepare.py "https://www.youtube.com/watch?v=VIDEO_ID" --
 
 Resolve `scripts/prepare.py` relative to the installed skill directory when running outside this repository. Keep the user's workspace as the working directory so the default `runs/` output is created with the user's project rather than inside the skill installation.
 
+YouTube runs use `CHANNEL-NAME__CHANNEL-ID/YYYY-MM-DD_VIDEO-ID` directory names. yt-dlp supplies the display name, stable IDs, and upload date; unsafe path characters are replaced for Windows, macOS, and Linux. The IDs prevent collisions and let recursive lookup reuse the same run even when a channel changes its display name. Retry with the original URL, not the downloaded `video.mkv`, so the stable YouTube identity is preserved. Stock tracker discovery scans channel directories recursively.
+
 The CLI defaults to Chinese-first caption selection; use `--languages en,zh-TW,zh` for English-first sources. Summary language is an independent agent choice.
 
 ## Agent handoff

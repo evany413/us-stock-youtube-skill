@@ -32,7 +32,7 @@ except ImportError:  # Direct execution places this script's directory on sys.pa
 
 
 def discover_run_directories(explicit: list[Path], runs_directory: Path) -> list[Path]:
-    candidates = explicit or [path.parent for path in runs_directory.glob("*/analysis.json")]
+    candidates = explicit or [path.parent for path in runs_directory.rglob("analysis.json")]
     unique: dict[Path, None] = {}
     for candidate in candidates:
         unique[candidate.expanduser().resolve(strict=True)] = None
