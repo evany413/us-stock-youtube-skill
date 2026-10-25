@@ -72,11 +72,12 @@ def collect_rows(run_directories: list[Path], output_path: Path) -> list[dict[st
                     "summary": _summary_link(run_directory, output_path),
                 }
             )
-    rows.sort(key=lambda row: (row["youtuber"].casefold(), row["ticker"]))
+    # Stable sorts make the final priority ticker -> YouTuber -> newest date.
     rows.sort(
         key=lambda row: (row["date"] != "unknown", row["date"]),
         reverse=True,
     )
+    rows.sort(key=lambda row: (row["ticker"], row["youtuber"].casefold()))
     return rows
 
 

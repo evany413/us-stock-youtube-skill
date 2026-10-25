@@ -68,22 +68,30 @@ class ReportingTests(unittest.TestCase):
         with self.assertRaises(AnalysisError):
             render_summary_document(invalid_date)
 
-    def test_tracker_rebuild_is_sorted_and_idempotent(self):
+    def test_tracker_rebuild_is_sorted_by_ticker_youtuber_and_date(self):
         with tempfile.TemporaryDirectory() as temporary_directory:
             root = Path(temporary_directory)
             runs = root / "runs"
             older = runs / "Market Channel__UC123" / "older"
             newer = runs / "Market Channel__UC123" / "newer"
+            second_channel = runs / "Alpha Channel__UC456" / "aapl"
             older.mkdir(parents=True)
             newer.mkdir(parents=True)
+            second_channel.mkdir(parents=True)
             (older / "analysis.json").write_text(
                 json.dumps(sample_analysis("2026-10-20", "AAPL")), encoding="utf-8"
             )
             (newer / "analysis.json").write_text(
                 json.dumps(sample_analysis("2026-10-24", "NVDA")), encoding="utf-8"
             )
+            second_channel_analysis = sample_analysis("2026-10-22", "AAPL")
+            second_channel_analysis["video"]["youtuber"] = "Alpha Channel"
+            (second_channel / "analysis.json").write_text(
+                json.dumps(second_channel_analysis), encoding="utf-8"
+            )
             render_summary_file(older)
             render_summary_file(newer)
+            render_summary_file(second_channel)
             output = root / "stock-tracker.md"
 
             discovered = discover_run_directories([], runs)
@@ -93,10 +101,29 @@ class ReportingTests(unittest.TestCase):
             second = output.read_text(encoding="utf-8")
 
             self.assertEqual(first, second)
-            self.assertLess(first.index("2026-10-24"), first.index("2026-10-20"))
+            self.assertLess(first.index("Alpha Channel"), first.index("Market Channel"))
+            self.assertLess(first.index("2026-10-20"), first.index("2026-10-24"))
+            self.assertLess(first.index("AAPL"), first.index("NVDA"))
             self.assertEqual(first.count("NVDA"), 1)
             self.assertNotIn("分析日期", first)
             self.assertNotIn("下跌／風險", first)
+
+    def test_tracker_uses_newest_date_within_same_ticker_and_youtuber(self):
+        with tempfile.TemporaryDirectory() as temporary_directory:
+            root = Path(temporary_directory)
+            runs = root / "runs"
+            for name, date in (("older", "2026-10-20"), ("newer", "2026-10-24")):
+                run = runs / "Market Channel__UC123" / name
+                run.mkdir(parents=True)
+                (run / "analysis.json").write_text(
+                    json.dumps(sample_analysis(date, "AAPL")), encoding="utf-8"
+                )
+
+            output = root / "stock-tracker.md"
+            update_tracker(discover_run_directories([], runs), output)
+            tracker = output.read_text(encoding="utf-8")
+
+            self.assertLess(tracker.index("2026-10-24"), tracker.index("2026-10-20"))
 
 
 if __name__ == "__main__":

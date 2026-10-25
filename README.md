@@ -6,6 +6,22 @@ An agent skill for summarizing US stock market YouTube videos using timestamped 
 
 Prerequisites: [uv](https://docs.astral.sh/uv/getting-started/installation/) and `ffmpeg` / `ffprobe` on `PATH`.
 
+Install the latest version directly from GitHub with one command on Windows, macOS, or Linux:
+
+```console
+uv run https://raw.githubusercontent.com/evany413/us-stock-youtube-skill/main/scripts/install_from_github.py
+```
+
+To update an existing installation while keeping a timestamped backup:
+
+```console
+uv run https://raw.githubusercontent.com/evany413/us-stock-youtube-skill/main/scripts/install_from_github.py -- --force
+```
+
+Use `-- --agent claude` or `-- --agent agents` for their conventional user skill directories. Put bootstrap options before the separator—for example, `--ref <tag-or-commit> -- --force` installs a pinned release and replaces an existing installation.
+
+For a cloned repository, the local installer works as follows.
+
 The installer works on Windows, macOS, and Linux. It defaults to the Codex user skills directory (`$CODEX_HOME/skills` or `~/.codex/skills`).
 
 ```powershell
@@ -52,6 +68,7 @@ us-stock-youtube/
 |   `-- analysis-schema.md    # Structured analysis data contract
 |-- scripts/
 |   |-- install_skill.py      # Cross-platform skill installer
+|   |-- install_from_github.py # One-command remote bootstrap
 |   |-- install.ps1           # Windows one-command wrapper
 |   |-- install.sh            # macOS / Linux one-command wrapper
 |   |-- prepare.py            # Download, transcription, and screenshots
@@ -130,7 +147,7 @@ Then rebuild the table covering every completed analysis:
 uv run --script scripts/update_stock_tracker.py --runs-dir runs --output stock-tracker.md
 ```
 
-The tracker is rebuilt rather than appended, so the same command can be run repeatedly without duplicate rows. It keeps one video date and one compact row per stock: view, stated action, one-line key levels, outlook, source, and summary link. Missing values are not inferred.
+The tracker is rebuilt rather than appended, so the same command can be run repeatedly without duplicate rows. It keeps one video date and one compact row per stock: view, stated action, one-line key levels, outlook, source, and summary link. Rows are sorted by ticker, then YouTuber, then newest video date. Missing values are not inferred.
 
 ## Generated output
 
