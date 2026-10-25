@@ -1,2 +1,163 @@
-# us-stock-youtube-skill
-An agent skill that summarizes US stock market YouTube videos using yt-dlp, Whisper transcription, and FFmpeg screenshots, with timestamped insights on stocks, catalysts, and risks.
+# US Stock YouTube Summarizer
+
+An agent skill for summarizing US stock market YouTube videos using timestamped transcripts and screenshots.
+
+## Install the skill
+
+Prerequisites: [uv](https://docs.astral.sh/uv/getting-started/installation/) and `ffmpeg` / `ffprobe` on `PATH`.
+
+The installer works on Windows, macOS, and Linux. It defaults to the Codex user skills directory (`$CODEX_HOME/skills` or `~/.codex/skills`).
+
+```powershell
+# Windows PowerShell
+.\scripts\install.ps1
+```
+
+```bash
+# macOS or Linux (POSIX sh)
+sh scripts/install.sh
+```
+
+Other supported destinations:
+
+```powershell
+.\scripts\install.ps1 --agent claude
+.\scripts\install.ps1 --agent agents
+.\scripts\install.ps1 --skills-dir "D:\my-agent\skills"
+```
+
+```sh
+sh scripts/install.sh --agent claude
+sh scripts/install.sh --agent agents
+sh scripts/install.sh --skills-dir "$HOME/my-agent/skills"
+```
+
+The `claude` destination is `~/.claude/skills`; `agents` is `~/.agents/skills` on every operating system. `--skills-dir` accepts any parent skills directory. Re-run the matching command with `--force` to update an existing installation. The previous version is moved to a timestamped backup instead of being deleted.
+
+Both wrappers use the same cross-platform Python installer. They handle repository paths and destination paths containing spaces, and uv supplies Python 3.10 when it is not already installed.
+
+## Project structure
+
+```text
+us-stock-youtube/
+|-- SKILL.md                 # Agent instructions
+|-- README.md                # Project overview and setup
+|-- pyproject.toml           # Project metadata and Python dependencies
+|-- uv.lock                  # Reproducible dependency lock
+|-- .gitignore               # Excludes environments and generated media
+|-- agents/
+|   `-- openai.yaml           # Skill metadata and example prompt
+|-- references/
+|   |-- workflow.md           # Tool choices and usage examples
+|   `-- analysis-schema.md    # Structured analysis data contract
+|-- scripts/
+|   |-- install_skill.py      # Cross-platform skill installer
+|   |-- install.ps1           # Windows one-command wrapper
+|   |-- install.sh            # macOS / Linux one-command wrapper
+|   |-- prepare.py            # Download, transcription, and screenshots
+|   |-- prepare.py.lock       # Lockfile for evidence preparation
+|   |-- render_summary.py     # Generate a fixed single-video summary
+|   |-- render_summary.py.lock
+|   |-- update_stock_tracker.py # Rebuild the cumulative stock table
+|   `-- update_stock_tracker.py.lock
+`-- tests/                    # Standard-library unit tests
+```
+
+## Workflow
+
+1. Download a video with yt-dlp, or use a local video.
+2. Retrieve captions; fall back to local faster-whisper transcription.
+3. Extract a screenshot every 15 seconds with FFmpeg.
+4. Have an agent review the transcript and screenshots using SKILL.md.
+5. Save the supported findings in the fixed `analysis.json` contract.
+6. Render a concise `summary.md` with short news, market, and stock sections.
+7. Rebuild `stock-tracker.md` across all analyzed videos.
+
+## Setup
+
+For repository development, sync the locked Python 3.10+ environment:
+
+```console
+uv sync
+```
+
+Then prepare a video:
+
+```powershell
+uv run python scripts/prepare.py "https://www.youtube.com/watch?v=VIDEO_ID" --languages en,zh-TW,zh
+```
+
+The installed skill can run the preparation script directly from any working directory. Its inline dependency metadata lets uv create a cached, isolated environment without modifying the skill directory:
+
+```bash
+uv run --script /path/to/us-stock-youtube/scripts/prepare.py "https://www.youtube.com/watch?v=VIDEO_ID"
+```
+
+See [yt-dlp documentation](https://github.com/yt-dlp/yt-dlp) for current YouTube runtime requirements. The first ASR run downloads model weights. The preparation script requires no separate LLM API key; summarization uses the agent's model.
+
+Run the lightweight test suite with:
+
+```console
+uv run --no-project python -m unittest discover -s tests -v
+```
+
+When preparation dependencies change, refresh the project and preparation lockfiles:
+
+```console
+uv lock
+uv lock --script scripts/prepare.py
+```
+
+The two reporting scripts use only the standard library, but their script lockfiles should also be refreshed if their inline metadata changes:
+
+```console
+uv lock --script scripts/render_summary.py
+uv lock --script scripts/update_stock_tracker.py
+```
+
+## Reporting commands
+
+After the Agent reviews one run and writes `analysis.json`, generate its fixed-format report:
+
+```console
+uv run --script scripts/render_summary.py runs/<run-id>
+```
+
+Then rebuild the table covering every completed analysis:
+
+```console
+uv run --script scripts/update_stock_tracker.py --runs-dir runs --output stock-tracker.md
+```
+
+The tracker is rebuilt rather than appended, so the same command can be run repeatedly without duplicate rows. It keeps one video date and one compact row per stock: view, stated action, one-line key levels, outlook, source, and summary link. Missing values are not inferred.
+
+## Generated output
+
+```text
+runs/<timestamp>-<unique-id>/
+|-- manifest.json            # Successful preparation metadata
+|-- transcript.json          # Timestamped segments and transcript source
+|-- transcript.md            # Human-readable transcript
+|-- frames.json              # Screenshot paths and nominal timestamps
+|-- frames/
+|   |-- 000000.jpg
+|   `-- ...
+|-- analysis.json            # Structured findings written by the agent
+`-- summary.md               # Deterministically rendered report
+```
+
+The workspace also contains one cumulative file:
+
+```text
+stock-tracker.md              # One table covering stocks from every completed run
+```
+
+Downloaded videos, captions, metadata, and extracted ASR audio are retained when applicable. Generated runs and virtual environments are excluded from Git.
+
+## Agent usage
+
+Ask an agent to read SKILL.md and summarize a video or existing run directory. The Agent reviews the evidence and writes concise schema-v2 `analysis.json`; the reporting scripts validate that data, generate `summary.md`, and rebuild `stock-tracker.md`. The fixed headings are Traditional Chinese, and analysis text follows your request.
+
+## Development status
+
+Initial implementation. Skill format, caption parsing, and screenshot extraction on synthetic video have been validated. Real YouTube downloads and speech recognition have not yet been tested end to end.

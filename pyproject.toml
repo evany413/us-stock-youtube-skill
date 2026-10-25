@@ -1,0 +1,16 @@
+[project]
+name = "us-stock-youtube-skill"
+version = "0.1.0"
+description = "Prepare transcripts and visual evidence for agent summaries of US stock YouTube videos."
+readme = "README.md"
+requires-python = ">=3.10"
+license = "MIT"
+dependencies = [
+    "faster-whisper>=1.1,<2",
+    "av>=11,<19",
+    "yt-dlp[default]",
+]
+
+[tool.uv]
+package = false
+

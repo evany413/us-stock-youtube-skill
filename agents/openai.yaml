@@ -1,0 +1,4 @@
+interface:
+  display_name: "US Stock YouTube Summarizer"
+  short_description: "Summarize stock videos and track stated stock views"
+  default_prompt: "Use $us-stock-youtube to summarize this stock video in the fixed report format and update the cumulative stock tracker."
