@@ -20,6 +20,8 @@ PAYLOAD = (
     Path("scripts") / "prepare.py.lock",
     Path("scripts") / "render_summary.py",
     Path("scripts") / "render_summary.py.lock",
+    Path("scripts") / "render_tracker_html.py",
+    Path("scripts") / "render_tracker_html.py.lock",
     Path("scripts") / "update_stock_tracker.py",
     Path("scripts") / "update_stock_tracker.py.lock",
 )

@@ -5,6 +5,7 @@ import tempfile
 import unittest
 
 from scripts.render_summary import AnalysisError, render_summary_document, render_summary_file
+from scripts.render_tracker_html import parse_tracker_markdown, render_tracker_html_file
 from scripts.update_stock_tracker import discover_run_directories, update_tracker
 
 
@@ -101,6 +102,12 @@ class ReportingTests(unittest.TestCase):
             second = output.read_text(encoding="utf-8")
 
             self.assertEqual(first, second)
+            html_output = output.with_suffix(".html")
+            self.assertTrue(html_output.exists())
+            html = html_output.read_text(encoding="utf-8")
+            self.assertIn('id="ticker-search"', html)
+            self.assertIn('data-ticker="AAPL"', html)
+            self.assertIn('data-ticker="NVDA"', html)
             self.assertLess(first.index("Alpha Channel"), first.index("Market Channel"))
             self.assertLess(first.index("2026-10-20"), first.index("2026-10-24"))
             self.assertLess(first.index("AAPL"), first.index("NVDA"))
@@ -124,6 +131,28 @@ class ReportingTests(unittest.TestCase):
             tracker = output.read_text(encoding="utf-8")
 
             self.assertLess(tracker.index("2026-10-24"), tracker.index("2026-10-20"))
+
+    def test_html_renderer_reads_markdown_and_preserves_links_and_escaped_pipes(self):
+        with tempfile.TemporaryDirectory() as temporary_directory:
+            root = Path(temporary_directory)
+            markdown = root / "stock-tracker.md"
+            markdown.write_text(
+                "# 個股觀點追蹤表\n\n"
+                "| 日期 | 個股 | 未來展望 | 來源 |\n"
+                "|---|---|---|---|\n"
+                "| 2026-10-24 | NVDA | AI \\| GPU | [影片](https://example.com/video) |\n",
+                encoding="utf-8",
+            )
+
+            headers, rows = parse_tracker_markdown(markdown.read_text(encoding="utf-8"))
+            output = render_tracker_html_file(markdown)
+            html = output.read_text(encoding="utf-8")
+
+            self.assertEqual(headers, ["日期", "個股", "未來展望", "來源"])
+            self.assertEqual(rows[0][2], "AI | GPU")
+            self.assertIn('data-ticker="NVDA"', html)
+            self.assertIn('href="https://example.com/video"', html)
+            self.assertIn("AI | GPU", html)
 
 
 if __name__ == "__main__":

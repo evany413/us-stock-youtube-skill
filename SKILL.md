@@ -47,7 +47,7 @@ Then rebuild the cumulative stock tracker from every completed run. Use the pare
 uv run --script <skill-directory>/scripts/update_stock_tracker.py --runs-dir runs --output stock-tracker.md
 ```
 
-The rebuild is idempotent: it derives the table from `analysis.json` files instead of appending rows. Rows are ordered by ticker, then YouTuber, then newest video date. Report both output paths to the user. If there are no confirmed tickers, still generate the single-video summary and rebuild an unchanged or empty tracker.
+The rebuild is idempotent: it derives `stock-tracker.md` from `analysis.json` files instead of appending rows, then automatically converts that Markdown into a self-contained searchable `stock-tracker.html`. The HTML is a generated view, not a second source for the agent to maintain. Rows are ordered by ticker, then YouTuber, then newest video date. Report the summary, Markdown tracker, and HTML tracker paths to the user. If there are no confirmed tickers, still generate the single-video summary and rebuild empty tracker files.
 
 Distinguish speaker claims, visible evidence, and independently verified facts. Perform external verification only when requested, using primary sources such as company filings or SEC documents and recording the verification date. Do not rewrite historical claims using today's data. The report and tracker summarize source content and are not financial advice.
 

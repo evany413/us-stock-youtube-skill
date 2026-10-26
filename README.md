@@ -75,7 +75,9 @@ us-stock-youtube/
 |   |-- prepare.py.lock       # Lockfile for evidence preparation
 |   |-- render_summary.py     # Generate a fixed single-video summary
 |   |-- render_summary.py.lock
-|   |-- update_stock_tracker.py # Rebuild the cumulative stock table
+|   |-- render_tracker_html.py # Convert tracker Markdown to searchable HTML
+|   |-- render_tracker_html.py.lock
+|   |-- update_stock_tracker.py # Rebuild Markdown and HTML trackers
 |   `-- update_stock_tracker.py.lock
 `-- tests/                    # Standard-library unit tests
 ```
@@ -147,7 +149,7 @@ Then rebuild the table covering every completed analysis:
 uv run --script scripts/update_stock_tracker.py --runs-dir runs --output stock-tracker.md
 ```
 
-The tracker is rebuilt rather than appended, so the same command can be run repeatedly without duplicate rows. It keeps one video date and one compact row per stock: view, stated action, one-line key levels, outlook, source, and summary link. Rows are sorted by ticker, then YouTuber, then newest video date. Missing values are not inferred.
+The tracker is rebuilt rather than appended, so the same command can be run repeatedly without duplicate rows. It keeps one video date and one compact row per stock: view, stated action, one-line key levels, outlook, source, and summary link. Rows are sorted by ticker, then YouTuber, then newest video date. The command also converts `stock-tracker.md` into a self-contained `stock-tracker.html` with ticker search; Markdown remains the single maintained tracker source. Missing values are not inferred.
 
 ## Generated output
 
@@ -169,6 +171,7 @@ The workspace also contains one cumulative file:
 
 ```text
 stock-tracker.md              # One table covering stocks from every completed run
+stock-tracker.html            # Searchable generated view of stock-tracker.md
 ```
 
 Downloaded videos, captions, metadata, and extracted ASR audio are retained when applicable. Generated runs and virtual environments are excluded from Git.

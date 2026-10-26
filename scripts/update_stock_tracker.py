@@ -2,7 +2,7 @@
 # requires-python = ">=3.10"
 # dependencies = []
 # ///
-"""Rebuild a concise Markdown stock tracker from completed analyses."""
+"""Rebuild Markdown and searchable HTML stock trackers from completed analyses."""
 
 from __future__ import annotations
 
@@ -21,6 +21,7 @@ try:
         escape_cell,
         load_analysis,
     )
+    from .render_tracker_html import render_tracker_html_file
 except ImportError:  # Direct execution places this script's directory on sys.path.
     from render_summary import (  # type: ignore[no-redef]
         ACTION_LABELS,
@@ -29,6 +30,7 @@ except ImportError:  # Direct execution places this script's directory on sys.pa
         escape_cell,
         load_analysis,
     )
+    from render_tracker_html import render_tracker_html_file  # type: ignore[no-redef]
 
 
 def discover_run_directories(explicit: list[Path], runs_directory: Path) -> list[Path]:
@@ -115,12 +117,13 @@ def render_tracker(rows: list[dict[str, Any]]) -> str:
     return "\n".join(lines)
 
 
-def update_tracker(run_directories: list[Path], output_path: Path) -> Path:
+def update_tracker(run_directories: list[Path], output_path: Path) -> tuple[Path, Path]:
     output_path = output_path.expanduser().resolve()
     rows = collect_rows(run_directories, output_path)
     output_path.parent.mkdir(parents=True, exist_ok=True)
     output_path.write_text(render_tracker(rows), encoding="utf-8")
-    return output_path
+    html_output = render_tracker_html_file(output_path)
+    return output_path, html_output
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -140,11 +143,12 @@ def main() -> int:
     args = build_parser().parse_args()
     try:
         run_directories = discover_run_directories(args.run_directories, args.runs_dir)
-        output = update_tracker(run_directories, args.output)
+        output, html_output = update_tracker(run_directories, args.output)
     except (AnalysisError, FileNotFoundError, OSError) as exc:
         print(f"Stock tracker update failed: {exc}", file=sys.stderr)
         return 1
     print(f"Stock tracker written: {output} ({len(run_directories)} runs)")
+    print(f"Searchable HTML written: {html_output}")
     return 0
 
 
