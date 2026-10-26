@@ -50,4 +50,13 @@ uv run --script scripts/update_stock_tracker.py --runs-dir runs --output stock-t
 
 The reporting scripts use only the Python standard library. The tracker is rebuilt from source analysis files on every run, then its Markdown is converted into a searchable self-contained HTML view. Rerunning the command does not duplicate records or require maintaining two tracker sources.
 
+When the user explicitly requests cleanup, preview completed runs before adding `--apply`:
+
+```powershell
+uv run --script scripts/cleanup_runs.py --runs-dir runs
+uv run --script scripts/cleanup_runs.py --runs-dir runs --apply
+```
+
+Cleanup deletes only the downloaded video, extracted audio, screenshots, and frame index. It preserves the small source records required by transcripts, summaries, and trackers.
+
 Synthetic tests validate extraction mechanics, not real YouTube access or transcription quality. Report this limitation when no real source has been tested.

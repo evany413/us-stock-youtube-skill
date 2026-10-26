@@ -67,6 +67,8 @@ us-stock-youtube/
 |   |-- workflow.md           # Tool choices and usage examples
 |   `-- analysis-schema.md    # Structured analysis data contract
 |-- scripts/
+|   |-- cleanup_runs.py       # Remove large media from completed runs
+|   |-- cleanup_runs.py.lock
 |   |-- install_skill.py      # Cross-platform skill installer
 |   |-- install_from_github.py # One-command remote bootstrap
 |   |-- install.ps1           # Windows one-command wrapper
@@ -177,6 +179,22 @@ stock-tracker.html            # Searchable generated view of stock-tracker.md
 Downloaded videos, captions, metadata, and extracted ASR audio are retained when applicable. Generated runs and virtual environments are excluded from Git.
 
 The channel display name keeps the directory readable, while `channel-id` and `video-id` provide stable identity and avoid collisions. Unsafe path characters are replaced for Windows, macOS, and Linux. Recursive video-ID lookup reuses the same run even if the channel later changes its display name. Local inputs use `runs/_local/local_<stem>_<path-hash>/`.
+
+## Clean completed runs
+
+Preview the downloaded video, extracted audio, and frames that can be removed from completed analyses:
+
+```console
+uv run --script scripts/cleanup_runs.py --runs-dir runs
+```
+
+After reviewing the paths and reclaimable space, perform the deletion:
+
+```console
+uv run --script scripts/cleanup_runs.py --runs-dir runs --apply
+```
+
+Only runs with both `analysis.json` and `summary.md` are eligible. Cleanup removes `video.*`, `audio.wav`, `frames/`, and `frames.json`; manifests, transcripts, captions, analyses, summaries, and tracker data remain available. To clean one run, pass its directory as the positional argument instead of scanning `--runs-dir`.
 
 ## Agent usage
 

@@ -16,6 +16,8 @@ PAYLOAD = (
     Path("SKILL.md"),
     Path("agents"),
     Path("references"),
+    Path("scripts") / "cleanup_runs.py",
+    Path("scripts") / "cleanup_runs.py.lock",
     Path("scripts") / "prepare.py",
     Path("scripts") / "prepare.py.lock",
     Path("scripts") / "render_summary.py",
